@@ -24,8 +24,8 @@ export default function ConnectModal({ onClose }: { onClose: () => void }) {
   }
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" style={{ background: "rgb(4 8 22 / 0.7)" }} onClick={onClose}>
-      <div className="w-full max-w-md rounded-2xl border border-white/10 bg-[rgb(10_16_40)] p-5 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 z-[100] flex items-start sm:items-center justify-center p-4 overflow-y-auto" style={{ background: "rgb(4 8 22 / 0.7)" }} onClick={onClose}>
+      <div className="w-full max-w-md my-auto rounded-2xl border border-white/10 bg-[rgb(10_16_40)] p-5 shadow-2xl max-h-[calc(100vh-2rem)] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-1">
           <h2 className="text-lg font-bold">Connect Wallet</h2>
           <button onClick={onClose} className="text-white/40 hover:text-white text-xl leading-none">×</button>

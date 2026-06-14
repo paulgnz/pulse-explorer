@@ -158,6 +158,9 @@ export default function ContractBrowser({ account }: { account: string }) {
       {tab === "abi" && (
         <pre className="mono text-xs bg-black/30 rounded-lg p-3 overflow-auto max-h-[32rem]">{JSON.stringify(abi, null, 2)}</pre>
       )}
+
+      {showConnect && <ConnectModal onClose={() => setShowConnect(false)} />}
+      {cliActions && <CliCommandModal actions={cliActions} onClose={() => setCliActions(null)} />}
     </div>
   );
 }
