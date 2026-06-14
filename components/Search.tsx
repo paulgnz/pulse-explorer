@@ -15,7 +15,7 @@ function classify(q: string) {
   if (!t) return null;
   if (/^\d+$/.test(t)) return { kind: "Block", href: `/block/${t}` };
   if (/^[0-9a-fA-F]{64}$/.test(t)) return { kind: "Tx / Block", href: `/tx/${t}` };
-  if (/^(PUB_|EOS)/.test(t)) return { kind: "Key", href: `/search?key=${t}` };
+  if (/^(PUB_|EOS)/.test(t)) return { kind: "Key", href: `/key/${encodeURIComponent(t)}` };
   if (/^[a-z1-5.]{1,13}$/.test(t)) return { kind: "Account", href: `/account/${t}` };
   return { kind: "Search", href: `/account/${t}` };
 }
