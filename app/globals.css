@@ -1,0 +1,8 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body { background: #0b0e14; color: #e6eaf2; }
+a { color: inherit; }
+.card { background: #121722; border: 1px solid #1e2633; border-radius: 14px; }
+.mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
