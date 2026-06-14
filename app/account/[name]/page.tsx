@@ -1,7 +1,8 @@
-import { getAccount, getCurrencyBalance, KNOWN_TOKENS } from "@/lib/rpc";
+import { getAccount, getCurrencyBalance, KNOWN_TOKENS, SYSTEM } from "@/lib/rpc";
 import ContractBrowser from "@/components/ContractBrowser";
 import AccountTabs from "@/components/AccountTabs";
 import EmptyState from "@/components/EmptyState";
+import CopyButton from "@/components/CopyButton";
 
 export const dynamic = "force-dynamic";
 
@@ -31,13 +32,21 @@ export default async function Account({ params }: { params: { name: string } }) 
     )
   ).flat();
 
-  const isContract = acct.last_code_update && acct.last_code_update !== "1970-01-01T00:00:00.000";
+  // A WASM contract has a non-epoch last_code_update. The native system contract
+  // (`pulse`) and other privileged accounts have native actions (epoch code-update)
+  // but still expose an ABI via Hyperion — show the browser for them too.
+  const hasCode = acct.last_code_update && acct.last_code_update !== "1970-01-01T00:00:00.000";
+  const isSystem = acct.account_name === SYSTEM || acct.privileged;
+  const isContract = hasCode;
+  const showBrowser = hasCode || isSystem;
 
   return (
     <div className="space-y-5">
       <div className="flex items-center gap-3 flex-wrap">
         <h1 className="text-2xl font-bold mono">{acct.account_name}</h1>
+        <CopyButton text={acct.account_name} label="account name" />
         {isContract && <span className="chip bg-accent/20 text-accent">contract</span>}
+        {!isContract && isSystem && <span className="chip bg-accent/20 text-accent">system contract</span>}
         {acct.privileged && <span className="chip bg-warn/15 text-warn">privileged</span>}
         <span className="chip bg-glow/15 text-glow">Reclaimed from XPR testnet</span>
       </div>
@@ -51,7 +60,7 @@ export default async function Account({ params }: { params: { name: string } }) 
 
       <AccountTabs acct={acct} balances={balances} />
 
-      {isContract && <ContractBrowser account={acct.account_name} />}
+      {showBrowser && <ContractBrowser account={acct.account_name} />}
     </div>
   );
 }

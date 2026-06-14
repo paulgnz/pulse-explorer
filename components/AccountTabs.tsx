@@ -89,8 +89,7 @@ export default function AccountTabs({
             </div>
           ) : (
             <p className="text-white/45 text-sm py-4 text-center">
-              No token balances. The XPR token contract (<span className="mono">pulse.token</span>) isn’t deployed on this
-              testnet yet — balances light up automatically once it is.
+              No token balances held by this account.
             </p>
           )
         )}
