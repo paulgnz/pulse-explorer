@@ -1,14 +1,25 @@
 "use client";
 import { useEffect, useState } from "react";
-import { getAbi, getTableRows, RPC } from "@/lib/rpc";
+import { getAbi, getTableRows } from "@/lib/rpc";
 import { getAbiSnapshot } from "@/lib/hyperion";
+import { useWallet } from "./WalletProvider";
+import ConnectModal from "./ConnectModal";
+import CliCommandModal from "./CliCommandModal";
+import type { ActionDef } from "@/lib/wallet/types";
 
 type Tab = "tables" | "actions" | "abi";
 
 export default function ContractBrowser({ account }: { account: string }) {
+  const { session, submit } = useWallet();
   const [abi, setAbi] = useState<any>(null);
   const [tab, setTab] = useState<Tab>("tables");
   const [err, setErr] = useState("");
+
+  // submit/session state
+  const [showConnect, setShowConnect] = useState(false);
+  const [cliActions, setCliActions] = useState<ActionDef[] | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [result, setResult] = useState<{ ok: boolean; msg: string } | null>(null);
 
   // table state
   const [table, setTable] = useState("");
@@ -58,11 +69,21 @@ export default function ContractBrowser({ account }: { account: string }) {
     setForm(f);
   }
 
-  function submit() {
-    // Hand off to the Pulse Wallet for signing via the pulsevm:// scheme.
-    const act = { account, name: action.name, authorization: [{ actor: "<your-account>", permission: "active" }], data: form };
-    const payload = btoa(JSON.stringify({ actions: [act], rpc: RPC }));
-    window.location.href = `pulsevm://sign?tx=${payload}`;
+  async function doSubmit() {
+    setResult(null);
+    if (!session) { setShowConnect(true); return; }
+    const act: ActionDef = {
+      account,
+      name: action.name,
+      authorization: [{ actor: session.actor, permission: session.permission }],
+      data: form,
+    };
+    setSubmitting(true);
+    const out = await submit([act], abi);
+    setSubmitting(false);
+    if (out.kind === "cli") setCliActions(out.actions!);
+    else if (out.kind === "signed") setResult({ ok: true, msg: out.transactionId ? `Broadcast ✓ ${out.transactionId.slice(0, 16)}…` : "Signed & broadcast ✓" });
+    else setResult({ ok: false, msg: out.error || "Failed" });
   }
 
   const TabBtn = ({ id, label }: { id: Tab; label: string }) => (
@@ -115,8 +136,20 @@ export default function ContractBrowser({ account }: { account: string }) {
                   <input value={form[fl.name] || ""} onChange={(e) => setForm({ ...form, [fl.name]: e.target.value })}
                     className="pulse-field block mt-1 w-full px-3 py-2 text-sm mono" placeholder={fl.type} /></label>
               ))}
-              <button onClick={submit} className="rounded-lg bg-brand px-4 py-2 text-sm font-medium mt-2">Submit via Pulse Wallet →</button>
-              <p className="text-xs text-white/40">Opens the Pulse Wallet (pulsevm://) to review &amp; sign. Login/WebAuth in-page coming next.</p>
+              <button onClick={doSubmit} disabled={submitting}
+                className="rounded-lg bg-brand px-4 py-2 text-sm font-medium mt-2 disabled:opacity-50">
+                {submitting ? "Submitting…" : session ? (session.method === "cli" ? "Get CLI command →" : "Submit & sign →") : "Connect wallet to submit →"}
+              </button>
+              {result && (
+                <p className={`text-xs mt-1 ${result.ok ? "text-success" : "text-danger"}`}>{result.msg}</p>
+              )}
+              <p className="text-xs text-white/40">
+                {session
+                  ? session.method === "cli"
+                    ? `Acting as ${session.actor} (dev mode) — emits a CLI command to sign yourself.`
+                    : `Signs as ${session.actor}@${session.permission} in your wallet, then broadcasts.`
+                  : "Connect the Pulse Wallet, WebAuth, or CLI dev-mode to execute actions."}
+              </p>
             </div>
           )}
         </div>

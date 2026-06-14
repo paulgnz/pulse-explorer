@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import { CHAIN_NAME } from "@/lib/rpc";
 import Search from "@/components/Search";
 import Logo from "@/components/Logo";
+import WalletProvider from "@/components/WalletProvider";
+import AccountMenu from "@/components/AccountMenu";
 
 export const metadata: Metadata = {
   title: "Pulse Explorer — XPR Network Pulse Testnet",
@@ -19,6 +21,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" data-theme="pulse">
       <body>
+        <WalletProvider>
         <header className="sticky top-0 z-40 border-b border-white/5 backdrop-blur-xl">
           <div className="max-w-6xl mx-auto px-5 py-3 flex items-center gap-4">
             <a href="/" className="flex items-center gap-2 font-bold text-lg shrink-0">
@@ -27,7 +30,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </a>
             <div className="flex-1 flex justify-center"><Search /></div>
             <a href="https://pulsevm.dev" target="_blank" rel="noopener"
-               className="shrink-0 rounded-lg bg-brand px-3 py-1.5 text-sm font-medium text-white">pulsevm.dev</a>
+               className="hidden sm:inline-block shrink-0 rounded-lg border border-white/15 px-3 py-1.5 text-sm font-medium text-white/80 hover:border-white/30">pulsevm.dev</a>
+            <AccountMenu />
           </div>
           <nav className="max-w-6xl mx-auto px-5 pb-2 flex gap-1 overflow-x-auto text-sm">
             {NAV.map(([label, href]) => (
@@ -45,6 +49,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </span>
           </div>
         </footer>
+        </WalletProvider>
       </body>
     </html>
   );
