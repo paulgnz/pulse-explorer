@@ -81,7 +81,7 @@ export default function WalletProvider({ children }: { children: React.ReactNode
     }
     if (method === "webauth") {
       throw new Error(
-        "WebAuth (Pulse Edition) needs the published Pulse ID service. Use the Pulse Wallet or CLI mode for now."
+        "WebAuth (Metal X) authenticates against XPR / A-Chain only — it can't sign for this sovereign testnet's accounts. Use the Pulse Wallet (desktop) or CLI mode."
       );
     }
     // pulsevm — desktop deep link

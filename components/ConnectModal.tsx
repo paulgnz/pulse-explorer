@@ -47,8 +47,8 @@ export default function ConnectModal({ onClose }: { onClose: () => void }) {
             onClick={() => go("pulsevm")}
           />
           <Option
-            title="WebAuth (Pulse Edition)"
-            sub="Browser sign-in · requires the Pulse ID service"
+            title="WebAuth (Metal X)"
+            sub="XPR / A-Chain only — can't authenticate this sovereign chain"
             icon="🔐"
             busy={busy === "webauth"}
             onClick={() => go("webauth")}
