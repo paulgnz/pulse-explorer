@@ -3,6 +3,15 @@ import ContractBrowser from "@/components/ContractBrowser";
 import AccountTabs from "@/components/AccountTabs";
 import EmptyState from "@/components/EmptyState";
 import CopyButton from "@/components/CopyButton";
+import AccountAvatar from "@/components/AccountAvatar";
+
+// Parse a "12.3456 XPR"-style amount field into its numeric value (0 on miss).
+function amt(v?: string) {
+  if (!v) return 0;
+  const n = parseFloat(String(v).split(" ")[0]);
+  return Number.isFinite(n) ? n : 0;
+}
+const fmtXpr = (n: number) => `${n.toLocaleString(undefined, { minimumFractionDigits: 4, maximumFractionDigits: 4 })} XPR`;
 
 export const dynamic = "force-dynamic";
 
@@ -42,19 +51,45 @@ export default async function Account({ params }: { params: { name: string } }) 
   const isContract = hasCode;
   const showBrowser = hasCode || isSystem;
 
+  // Balance breakdown (XPR core token). Liquid = getCurrencyBalance; staked from
+  // self_delegated_bandwidth (CPU+NET the account staked to itself) when present.
+  const liquid = amt(balances.find((b) => b.sym === "XPR")?.amount);
+  const sdb = acct.self_delegated_bandwidth;
+  const stakedCpu = amt(sdb?.cpu_weight);
+  const stakedNet = amt(sdb?.net_weight);
+  const staked = stakedCpu + stakedNet;
+  const total = liquid + staked;
+
   return (
     <div className="space-y-5">
-      <div className="flex items-center gap-3 flex-wrap">
-        <h1 className="text-2xl font-bold mono">{acct.account_name}</h1>
-        <CopyButton text={acct.account_name} label="account name" />
-        {isContract && <span className="chip bg-accent/20 text-accent">contract</span>}
-        {!isContract && isSystem && <span className="chip bg-accent/20 text-accent">system contract</span>}
-        {acct.privileged && <span className="chip bg-warn/15 text-warn">privileged</span>}
-        {isReserved ? (
-          <span className="chip bg-white/10 text-white/60">Reserved system name</span>
-        ) : (
-          <span className="chip bg-glow/15 text-glow">Reclaimed from XPR testnet</span>
-        )}
+      {/* Account header — avatar + name + chips. Stacks on mobile. */}
+      <div className="card glass-card aurora">
+        <div className="flex items-start gap-4">
+          <AccountAvatar name={acct.account_name} size={56} />
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-xl sm:text-2xl font-bold mono break-all">{acct.account_name}</h1>
+              <CopyButton text={acct.account_name} label="account name" />
+            </div>
+            <div className="flex items-center gap-2 flex-wrap mt-2">
+              {isContract && <span className="chip bg-accent/20 text-accent">contract</span>}
+              {!isContract && isSystem && <span className="chip bg-accent/20 text-accent">system contract</span>}
+              {acct.privileged && <span className="chip bg-warn/15 text-warn">privileged</span>}
+              {isReserved ? (
+                <span className="chip bg-white/10 text-white/60">Reserved system name</span>
+              ) : (
+                <span className="chip bg-glow/15 text-glow">Reclaimed from XPR testnet</span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Prominent balance block — liquid / staked / total. */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-5">
+          <Balance label="Liquid" value={fmtXpr(liquid)} accent />
+          <Balance label="Staked" value={fmtXpr(staked)} sub={staked ? `CPU ${fmtXpr(stakedCpu)} · NET ${fmtXpr(stakedNet)}` : undefined} />
+          <Balance label="Total XPR" value={fmtXpr(total)} className="col-span-2 sm:col-span-1" />
+        </div>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -67,6 +102,16 @@ export default async function Account({ params }: { params: { name: string } }) 
       <AccountTabs acct={acct} balances={balances} />
 
       {showBrowser && <ContractBrowser account={acct.account_name} />}
+    </div>
+  );
+}
+
+function Balance({ label, value, sub, accent, className = "" }: { label: string; value: string; sub?: string; accent?: boolean; className?: string }) {
+  return (
+    <div className={`rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 ${className}`}>
+      <div className="text-[11px] uppercase tracking-wide text-white/40">{label}</div>
+      <div className={`mt-0.5 text-lg font-bold mono break-all ${accent ? "text-brand" : "text-white"}`}>{value}</div>
+      {sub && <div className="mt-0.5 text-[11px] text-white/40 mono break-all">{sub}</div>}
     </div>
   );
 }
