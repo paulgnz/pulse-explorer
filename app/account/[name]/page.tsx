@@ -1,4 +1,5 @@
 import { getAccount, getCurrencyBalance } from "@/lib/rpc";
+import ContractBrowser from "@/components/ContractBrowser";
 
 export const dynamic = "force-dynamic";
 
@@ -43,6 +44,10 @@ export default async function Account({ params }: { params: { name: string } }) 
           ))}
         </div>
       </div>
+
+      {acct.last_code_update && acct.last_code_update !== "1970-01-01T00:00:00.000" && (
+        <ContractBrowser account={acct.account_name} />
+      )}
     </div>
   );
 }

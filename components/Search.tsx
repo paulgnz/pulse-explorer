@@ -6,14 +6,8 @@ import { useEffect, useRef, useState } from "react";
 const DEFAULTS = [
   { name: "pulse", tag: "system" },
   { name: "pulse.token", tag: "token" },
-  { name: "eosio", tag: "system" },
-  { name: "eosio.token", tag: "token" },
-  { name: "eosio.msig", tag: "msig" },
-  { name: "eosio.wrap", tag: "wrap" },
-  { name: "atomicassets", tag: "nft" },
-  { name: "atomicmarket", tag: "nft" },
-  { name: "oracles", tag: "oracle" },
   { name: "protonnz", tag: "account" },
+  { name: "california", tag: "account" },
 ];
 
 function classify(q: string) {
