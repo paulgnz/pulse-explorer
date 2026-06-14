@@ -37,6 +37,8 @@ export default async function Account({ params }: { params: { name: string } }) 
   // but still expose an ABI via Hyperion — show the browser for them too.
   const hasCode = acct.last_code_update && acct.last_code_update !== "1970-01-01T00:00:00.000";
   const isSystem = acct.account_name === SYSTEM || acct.privileged;
+  // pulse / pulse.* are reserved system names we created, NOT mirrored from XPR.
+  const isReserved = acct.account_name === SYSTEM || acct.account_name.startsWith(SYSTEM + ".");
   const isContract = hasCode;
   const showBrowser = hasCode || isSystem;
 
@@ -48,7 +50,11 @@ export default async function Account({ params }: { params: { name: string } }) 
         {isContract && <span className="chip bg-accent/20 text-accent">contract</span>}
         {!isContract && isSystem && <span className="chip bg-accent/20 text-accent">system contract</span>}
         {acct.privileged && <span className="chip bg-warn/15 text-warn">privileged</span>}
-        <span className="chip bg-glow/15 text-glow">Reclaimed from XPR testnet</span>
+        {isReserved ? (
+          <span className="chip bg-white/10 text-white/60">Reserved system name</span>
+        ) : (
+          <span className="chip bg-glow/15 text-glow">Reclaimed from XPR testnet</span>
+        )}
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">

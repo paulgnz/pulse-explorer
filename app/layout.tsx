@@ -2,6 +2,7 @@ import "./globals.css";
 import type { Metadata } from "next";
 import { CHAIN_NAME } from "@/lib/rpc";
 import Search from "@/components/Search";
+import Logo from "@/components/Logo";
 
 export const metadata: Metadata = {
   title: "Pulse Explorer — XPR Network Pulse Testnet",
@@ -21,7 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <header className="sticky top-0 z-40 border-b border-white/5 backdrop-blur-xl">
           <div className="max-w-6xl mx-auto px-5 py-3 flex items-center gap-4">
             <a href="/" className="flex items-center gap-2 font-bold text-lg shrink-0">
-              <span className="inline-block w-7 h-7 rounded-lg bg-brand" />
+              <Logo size={28} />
               Pulse<span className="text-white/40 font-normal">Explorer</span>
             </a>
             <div className="flex-1 flex justify-center"><Search /></div>
