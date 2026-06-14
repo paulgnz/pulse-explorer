@@ -129,12 +129,17 @@ export default function WalletProvider({ children }: { children: React.ReactNode
     if (session.method === "cli") {
       return { kind: "cli", actions: acts };
     }
-    // pulsevm wallet (and webauth once supported) — pack + sign on device
+    // pulsevm wallet (and webauth once supported) — pack, sign on device, then
+    // broadcast here (the wallet only returns a signature, it does not push).
     try {
-      const { packedTrxHex, chainId } = await buildPackedTrx(acts, packAbi);
+      const { broadcast } = await import("@/lib/wallet/pack");
+      const { tx, packedTrxHex, chainId } = await buildPackedTrx(acts, packAbi);
       const summary = `${acts[0].name} on ${acts[0].account}`;
       const res = await walletSign({ chainId, packedTrx: packedTrxHex, summary });
-      return { kind: "signed", transactionId: res.transactionId };
+      if (res.transactionId) return { kind: "signed", transactionId: res.transactionId };
+      if (!res.signature) return { kind: "error", error: "No signature returned by the wallet" };
+      const txid = await broadcast(tx, res.signature);
+      return { kind: "signed", transactionId: txid };
     } catch (e: any) {
       return { kind: "error", error: e.message };
     }

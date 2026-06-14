@@ -1,7 +1,7 @@
 // Build an unsigned packed transaction (hex) from action(s) + the contract ABI,
 // using current chain head for TAPOS. The Pulse Wallet signs the packed bytes.
-import { ABI, Action, Transaction, Serializer } from "@metalblockchain/pulsevm-js";
-import { getInfo } from "@/lib/rpc";
+import { ABI, Action, Transaction, Serializer, SignedTransaction, PulseAPI } from "@metalblockchain/pulsevm-js";
+import { getInfo, RPC } from "@/lib/rpc";
 import { getAbiSnapshot } from "@/lib/hyperion";
 import type { ActionDef } from "./types";
 
@@ -15,8 +15,20 @@ function refBlockPrefix(blockIdHex: string): number {
 }
 
 export interface PackedContext {
+  tx: any;
   packedTrxHex: string;
   chainId: string;
+}
+
+/**
+ * Broadcast a transaction the wallet signed. The Pulse Wallet only SIGNS (returns a
+ * signature, doesn't push), so the dapp combines the signature with the tx it built
+ * and pushes it. Returns the transaction id.
+ */
+export async function broadcast(tx: any, signature: string): Promise<string | undefined> {
+  const api = new PulseAPI(RPC);
+  const r: any = await api.pushTransaction(SignedTransaction.from({ ...tx, signatures: [signature] }));
+  return r?.transaction_id || r?.transactionId;
 }
 
 /** Serialize action data with the contract ABI and pack a TAPOS'd transaction. */
@@ -38,7 +50,7 @@ export async function buildPackedTrx(actions: ActionDef[], abiJson: any, expireS
     transaction_extensions: [],
   } as any);
 
-  return { packedTrxHex: Serializer.encode({ object: tx }).hexString, chainId: info.chain_id };
+  return { tx, packedTrxHex: Serializer.encode({ object: tx }).hexString, chainId: info.chain_id };
 }
 
 /** Fetch the pulse.msig ABI (for serializing a propose). Throws if msig isn't deployed. */

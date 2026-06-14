@@ -53,7 +53,7 @@ export async function walletLogin(): Promise<{ actor: string; permission: string
   return { actor: r.account, permission: r.permission || "active", publicKey: r.publicKey };
 }
 
-export async function walletSign(p: { chainId: string; packedTrx: string; summary?: string }): Promise<{ transactionId?: string }> {
+export async function walletSign(p: { chainId: string; packedTrx: string; summary?: string }): Promise<{ signature?: string; transactionId?: string }> {
   localStorage.removeItem(SIGN_KEY);
   const q = new URLSearchParams({
     chain_id: p.chainId,
@@ -64,7 +64,8 @@ export async function walletSign(p: { chainId: string; packedTrx: string; summar
   triggerScheme(`pulsevm://sign?${q.toString()}`);
   const r = await awaitResult(SIGN_KEY);
   if (r.error) throw new Error(r.error);
-  return { transactionId: r.transaction_id || r.transactionId };
+  // The Pulse Wallet returns a signature (it does not broadcast); the caller pushes.
+  return { signature: r.signature, transactionId: r.transaction_id || r.transactionId };
 }
 
 /**
@@ -84,10 +85,11 @@ export function handleCallback(): "login" | "sign" | null {
     );
     return "login";
   }
-  if (p.get("transaction_id") || p.get("transactionId") || p.get("signed") || p.get("error")) {
+  if (p.get("signature") || p.get("transaction_id") || p.get("transactionId") || p.get("signed") || p.get("error")) {
     localStorage.setItem(
       SIGN_KEY,
       JSON.stringify({
+        signature: p.get("signature") || "",
         transaction_id: p.get("transaction_id") || p.get("transactionId") || "",
         error: p.get("error") || "",
       })
