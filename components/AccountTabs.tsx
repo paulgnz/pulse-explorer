@@ -1,7 +1,9 @@
 "use client";
 import { useState } from "react";
 
-type Tab = "tokens" | "keys" | "resources" | "auth";
+import AccountActivity from "./AccountActivity";
+
+type Tab = "tokens" | "activity" | "keys" | "resources" | "auth";
 
 function Ring({ label, used, max }: { label: string; used: number; max: number }) {
   const unlimited = max < 0 || used < 0;
@@ -63,6 +65,7 @@ export default function AccountTabs({
     <div className="card">
       <div className="flex items-center gap-2 px-4 py-3 border-b border-line overflow-x-auto">
         <TabBtn id="tokens" label={`Tokens (${balances.length})`} />
+        <TabBtn id="activity" label="Activity" />
         <TabBtn id="keys" label={`Keys / Permissions (${perms.length})`} />
         <TabBtn id="resources" label="Resources" />
         <TabBtn id="auth" label="Auth" />
@@ -93,6 +96,8 @@ export default function AccountTabs({
             </p>
           )
         )}
+
+        {tab === "activity" && <AccountActivity account={acct.account_name} />}
 
         {tab === "keys" && (
           <div className="space-y-3">
