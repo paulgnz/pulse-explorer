@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 const NAV = [
   ["Blocks", "/blocks"], ["Transactions", "/transactions"], ["Accounts", "/accounts"],
   ["Tokens", "/tokens"], ["Producers", "/producers"], ["Oracles", "/oracles"],
-  ["Supply", "/supply"], ["Resources", "/resources"],
+  ["Supply", "/supply"], ["Resources", "/resources"], ["Wallet", "/wallet"],
 ];
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
