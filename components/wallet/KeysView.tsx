@@ -61,7 +61,7 @@ export default function KeysView() {
         account: SYSTEM,
         name: "linkauth",
         authorization: [],
-        data: { account: actor!, code: code.trim(), type: type.trim(), requirement: requirement.trim() },
+        data: { account: actor!, code: code.trim(), message_type: type.trim(), requirement: requirement.trim() },
       },
     ];
   }
@@ -72,7 +72,7 @@ export default function KeysView() {
         account: SYSTEM,
         name: "unlinkauth",
         authorization: [],
-        data: { account: actor!, code: code.trim(), type: type.trim() },
+        data: { account: actor!, code: code.trim(), message_type: type.trim() },
       },
     ];
   }

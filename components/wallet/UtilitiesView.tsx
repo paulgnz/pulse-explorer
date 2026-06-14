@@ -28,16 +28,11 @@ export default function UtilitiesView() {
     return [
       {
         account: SYSTEM,
-        name: "buyrambytes",
+        name: "buyrambsys",
         authorization: [],
         data: { payer: actor!, receiver: (buyReceiver.trim() || actor!).toLowerCase(), bytes },
       },
     ];
-  }
-  function buildSell(): ActionDef[] {
-    const bytes = parseInt(sellBytes, 10) || 0;
-    if (bytes <= 0) throw new Error("Enter a positive byte count");
-    return [{ account: SYSTEM, name: "sellram", authorization: [], data: { account: actor!, bytes } }];
   }
 
   return (
@@ -52,13 +47,12 @@ export default function UtilitiesView() {
           <h2 className="font-semibold text-sm">Buy RAM</h2>
           <Field label="Receiver" value={buyReceiver} onChange={(e) => setBuyReceiver(e.target.value.toLowerCase())} placeholder={actor || "your account"} />
           <Field label="Bytes" value={buyBytes} onChange={(e) => setBuyBytes(e.target.value)} inputMode="numeric" />
-          <SubmitBar flow={flow} idle="Buy RAM & sign →" onClick={() => flow.run(buildBuy, abi)} note={`${SYSTEM}::buyrambytes`} />
+          <SubmitBar flow={flow} idle="Buy RAM & sign →" onClick={() => flow.run(buildBuy, abi)} note={`${SYSTEM}::buyrambsys`} />
         </div>
 
-        <div className="glass-card space-y-3">
+        <div className="glass-card space-y-3 opacity-60">
           <h2 className="font-semibold text-sm">Sell RAM</h2>
-          <Field label="Bytes" value={sellBytes} onChange={(e) => setSellBytes(e.target.value)} placeholder="bytes to sell" inputMode="numeric" />
-          <SubmitBar flow={flow} idle="Sell RAM & sign →" onClick={() => flow.run(buildSell, abi)} note={`${SYSTEM}::sellram`} />
+          <p className="text-xs text-white/45">Not available — the current system contract has no <span className="mono">sellram</span> action yet (coming with the full pulse-cdt-rust system contract).</p>
         </div>
       </div>
 
