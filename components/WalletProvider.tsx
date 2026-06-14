@@ -16,13 +16,13 @@ export interface SubmitOutcome {
 
 interface WalletCtx {
   session: WalletSession | null;
-  accounts: string[];
+  accounts: WalletSession[];
   multisig: boolean;
   setMultisig: (v: boolean) => void;
   connect: (method: LoginMethod, actor?: string, permission?: string) => Promise<void>;
   disconnect: () => void;
   switchAccount: (actor: string) => void;
-  addAccount: (actor: string) => void;
+  removeAccount: (actor: string, permission: string) => void;
   /** Execute an action with the active session. Returns an outcome the UI renders. */
   submit: (actions: ActionDef[], abiJson: any) => Promise<SubmitOutcome>;
 }
@@ -36,7 +36,7 @@ export const useWallet = () => {
 
 export default function WalletProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<WalletSession | null>(null);
-  const [accounts, setAccounts] = useState<string[]>([]);
+  const [accounts, setAccounts] = useState<WalletSession[]>([]);
   const [multisig, setMultisig] = useState(false);
 
   useEffect(() => {
@@ -44,7 +44,15 @@ export default function WalletProvider({ children }: { children: React.ReactNode
       const s = localStorage.getItem(SESSION_KEY);
       if (s) setSession(JSON.parse(s));
       const a = localStorage.getItem(ACCOUNTS_KEY);
-      if (a) setAccounts(JSON.parse(a));
+      if (a) {
+        const parsed = JSON.parse(a);
+        // migrate legacy string[] → WalletSession[]
+        setAccounts(
+          Array.isArray(parsed)
+            ? parsed.map((x: any) => (typeof x === "string" ? { method: "cli", actor: x, permission: "active" } : x))
+            : []
+        );
+      }
     } catch {}
   }, []);
 
@@ -53,17 +61,22 @@ export default function WalletProvider({ children }: { children: React.ReactNode
     if (s) localStorage.setItem(SESSION_KEY, JSON.stringify(s));
     else localStorage.removeItem(SESSION_KEY);
   };
-  const persistAccounts = (list: string[]) => {
+  const persistAccounts = (list: WalletSession[]) => {
     setAccounts(list);
     localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(list));
+  };
+  // Add or replace an account (keyed by actor+permission) and make it active.
+  const upsertAndActivate = (s: WalletSession, list: WalletSession[]) => {
+    const key = (x: WalletSession) => `${x.actor}@${x.permission}`;
+    const next = [s, ...list.filter((x) => key(x) !== key(s))];
+    persistAccounts(next);
+    persist(s);
   };
 
   const connect = useCallback(async (method: LoginMethod, actor?: string, permission = "active") => {
     if (method === "cli") {
       if (!actor) throw new Error("Enter an account name to act as");
-      const s: WalletSession = { method, actor, permission };
-      persist(s);
-      persistAccounts(Array.from(new Set([actor, ...accounts])));
+      upsertAndActivate({ method, actor, permission }, accounts);
       return;
     }
     if (method === "webauth") {
@@ -73,22 +86,26 @@ export default function WalletProvider({ children }: { children: React.ReactNode
     }
     // pulsevm — desktop deep link
     const r = await walletLogin();
-    const s: WalletSession = { method, actor: r.actor, permission: r.permission, publicKey: r.publicKey };
-    persist(s);
-    persistAccounts(Array.from(new Set([r.actor, ...accounts])));
+    upsertAndActivate({ method, actor: r.actor, permission: r.permission, publicKey: r.publicKey }, accounts);
   }, [accounts]);
 
   const disconnect = useCallback(() => persist(null), []);
   const switchAccount = useCallback((actor: string) => {
+    const found = accounts.find((a) => a.actor === actor);
+    if (found) persist(found);
+  }, [accounts]);
+  const removeAccount = useCallback((actor: string, permission: string) => {
+    const next = accounts.filter((a) => !(a.actor === actor && a.permission === permission));
+    persistAccounts(next);
     setSession((s) => {
-      if (!s) return s;
-      const ns = { ...s, actor };
-      localStorage.setItem(SESSION_KEY, JSON.stringify(ns));
-      return ns;
+      if (s && s.actor === actor && s.permission === permission) {
+        const fallback = next[0] ?? null;
+        if (fallback) localStorage.setItem(SESSION_KEY, JSON.stringify(fallback));
+        else localStorage.removeItem(SESSION_KEY);
+        return fallback;
+      }
+      return s;
     });
-  }, []);
-  const addAccount = useCallback((actor: string) => {
-    persistAccounts(Array.from(new Set([actor, ...accounts])));
   }, [accounts]);
 
   const submit = useCallback(async (actions: ActionDef[], abiJson: any): Promise<SubmitOutcome> => {
@@ -124,7 +141,7 @@ export default function WalletProvider({ children }: { children: React.ReactNode
   }, [session, multisig]);
 
   return (
-    <Ctx.Provider value={{ session, accounts, multisig, setMultisig, connect, disconnect, switchAccount, addAccount, submit }}>
+    <Ctx.Provider value={{ session, accounts, multisig, setMultisig, connect, disconnect, switchAccount, removeAccount, submit }}>
       {children}
     </Ctx.Provider>
   );

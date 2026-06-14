@@ -1,5 +1,6 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { cliCommand, CLI_LABELS, type CliFlavor } from "@/lib/wallet/cli";
 import type { ActionDef } from "@/lib/wallet/types";
 
@@ -8,9 +9,12 @@ const FLAVORS: CliFlavor[] = ["cleos", "eosc", "pulse"];
 export default function CliCommandModal({ actions, onClose }: { actions: ActionDef[]; onClose: () => void }) {
   const [flavor, setFlavor] = useState<CliFlavor>("cleos");
   const [copied, setCopied] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
   const cmd = cliCommand(flavor, actions);
 
-  return (
+  if (!mounted) return null;
+  return createPortal(
     <div className="fixed inset-0 z-[100] flex items-start sm:items-center justify-center p-4 overflow-y-auto" style={{ background: "rgb(4 8 22 / 0.7)" }} onClick={onClose}>
       <div className="w-full max-w-2xl my-auto rounded-2xl border border-white/10 bg-[rgb(10_16_40)] p-5 shadow-2xl max-h-[calc(100vh-2rem)] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-3">
@@ -31,6 +35,7 @@ export default function CliCommandModal({ actions, onClose }: { actions: ActionD
         </div>
         <p className="text-xs text-white/40 mt-2">Paste into a terminal where your key is configured. Dev mode never touches your keys in the browser.</p>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

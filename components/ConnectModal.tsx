@@ -1,5 +1,6 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { useWallet } from "./WalletProvider";
 import type { LoginMethod } from "@/lib/wallet/types";
 
@@ -9,6 +10,8 @@ export default function ConnectModal({ onClose }: { onClose: () => void }) {
   const [err, setErr] = useState("");
   const [cliActor, setCliActor] = useState("");
   const [showCli, setShowCli] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   async function go(method: LoginMethod, actor?: string) {
     setErr("");
@@ -23,7 +26,8 @@ export default function ConnectModal({ onClose }: { onClose: () => void }) {
     }
   }
 
-  return (
+  if (!mounted) return null;
+  return createPortal(
     <div className="fixed inset-0 z-[100] flex items-start sm:items-center justify-center p-4 overflow-y-auto" style={{ background: "rgb(4 8 22 / 0.7)" }} onClick={onClose}>
       <div className="w-full max-w-md my-auto rounded-2xl border border-white/10 bg-[rgb(10_16_40)] p-5 shadow-2xl max-h-[calc(100vh-2rem)] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-1">
@@ -79,7 +83,8 @@ export default function ConnectModal({ onClose }: { onClose: () => void }) {
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
