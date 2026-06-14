@@ -25,6 +25,10 @@ export const getAccount = (account_name: string) => call<any>("pulsevm.getAccoun
 export const getCurrencyBalance = (code: string, account: string, symbol?: string) =>
   call<string[]>("pulsevm.getCurrencyBalance", { code, account, symbol });
 
+export const getAbi = (account_name: string) => call<any>("pulsevm.getAbi", { account_name });
+export const getTableRows = (p: { code: string; scope: string; table: string; limit?: number; lower_bound?: string; upper_bound?: string; reverse?: boolean; key_type?: string; index_position?: string; json?: boolean }) =>
+  call<any>("pulsevm.getTableRows", { json: true, limit: 50, key_type: "i64", index_position: "1", ...p });
+
 export async function recentBlocks(head: number, n = 12) {
   const nums: number[] = [];
   for (let i = head; i > Math.max(0, head - n); i--) nums.push(i);

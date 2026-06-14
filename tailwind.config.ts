@@ -1,6 +1,10 @@
 import type { Config } from "tailwindcss"
+const v = (n: string) => `rgb(var(--${n}) / <alpha-value>)`
 export default {
-  content: ["./app/**/*.{ts,tsx}", "./lib/**/*.{ts,tsx}"],
-  theme: { extend: { colors: { ink: "#0b0e14", panel: "#121722", line: "#1e2633", accent: "#4F7CFF", glow: "#8B95FF" } } },
+  content: ["./app/**/*.{ts,tsx}", "./lib/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}"],
+  theme: { extend: {
+    colors: { navy: v("navy"), ink: v("ink"), primary: v("primary"), accent: v("accent"), glow: v("glow"), success: v("success"), warn: v("warn"), danger: v("danger") },
+    backgroundImage: { brand: "linear-gradient(135deg, rgb(var(--accent)), rgb(var(--glow)))" },
+  } },
   plugins: [],
 } satisfies Config
