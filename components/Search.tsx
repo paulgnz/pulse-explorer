@@ -57,7 +57,8 @@ export default function Search() {
         />
       </div>
       {open && (
-        <div className="glass absolute z-50 mt-2 w-full overflow-hidden p-1.5">
+        <div className="absolute z-50 mt-2 w-full overflow-hidden rounded-2xl border border-white/10 p-1.5 shadow-2xl"
+             style={{ background: "rgb(8 13 34 / 0.99)", backdropFilter: "blur(24px)" }}>
           {cls && q.trim() && (
             <button onClick={() => go(cls.href)}
               className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm hover:bg-white/5">

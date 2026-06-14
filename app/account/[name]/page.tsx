@@ -9,7 +9,13 @@ export default async function Account({ params }: { params: { name: string } }) 
     bal = await getCurrencyBalance("pulse.token", params.name).catch(() => []);
   } catch (e: any) { err = e.message || String(e); }
 
-  if (err) return <div className="card p-6 text-red-400">Account “{params.name}” not found: {err}</div>;
+  if (err) return (
+    <div className="glass-card text-center py-12">
+      <div className="text-4xl mb-3">🔍</div>
+      <h1 className="text-xl font-semibold mb-1">Account <span className="mono text-accent">{params.name}</span> not found</h1>
+      <p className="text-white/50 text-sm max-w-md mx-auto">It isn’t on the Pulse Testnet (yet). The 32k XPR testnet accounts are being mirrored — if this is a real XPR testnet account, check back shortly.</p>
+    </div>
+  );
 
   return (
     <div className="space-y-5">
