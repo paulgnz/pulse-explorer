@@ -1,5 +1,5 @@
 // PulseVM JSON-RPC client for the XPR Network Pulse Testnet.
-export const RPC = process.env.NEXT_PUBLIC_RPC || "https://5.78.114.28.sslip.io";
+export const RPC = process.env.NEXT_PUBLIC_RPC || "https://rpc-testnet.pulsevm.dev";
 export const CHAIN_NAME = process.env.NEXT_PUBLIC_CHAIN_NAME || "XPR Network Pulse Testnet";
 // System account is `pulse` (NOT eosio); core token XPR lives at pulse.token.
 export const SYSTEM = "pulse";

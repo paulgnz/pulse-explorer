@@ -1,17 +1,22 @@
-import { getCurrencyStats, KNOWN_TOKENS } from "@/lib/rpc";
+import { getCurrencyStats, getCurrencyBalance, KNOWN_TOKENS } from "@/lib/rpc";
 import EmptyState from "@/components/EmptyState";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Tokens — Pulse Explorer" };
 
+// getCurrencyStats is unreliable on this PulseVM build (symbol-scoped stat table),
+// so detect deployment via the issuer's balance + fall back to known supply.
+const KNOWN_SUPPLY: Record<string, string> = { XPR: "2,129,582,261.9131 XPR" };
+
 export default async function Page() {
   const results = await Promise.all(
     KNOWN_TOKENS.map(async (t) => {
       try {
-        const stats = await getCurrencyStats(t.contract, t.sym);
-        const row = stats?.[t.sym];
-        if (!row) return null;
-        return { ...t, ...row };
+        const bal = await getCurrencyBalance(t.contract, "pulse", t.sym).catch(() => [] as string[]);
+        if (!bal || !bal.length) return null; // not deployed / issuer holds none
+        const stats = await getCurrencyStats(t.contract, t.sym).catch(() => ({} as any));
+        const row = stats?.[t.sym] || {};
+        return { ...t, supply: row.supply || KNOWN_SUPPLY[t.sym] || "—", max_supply: row.max_supply || "—", issuer: row.issuer || "pulse" };
       } catch {
         return null;
       }
