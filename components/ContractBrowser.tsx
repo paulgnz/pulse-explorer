@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { getAbi, getTableRows, RPC } from "@/lib/rpc";
+import { getAbiSnapshot } from "@/lib/hyperion";
 
 type Tab = "tables" | "actions" | "abi";
 
@@ -21,7 +22,17 @@ export default function ContractBrowser({ account }: { account: string }) {
   const [form, setForm] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    getAbi(account).then((r) => setAbi(r?.abi || r)).catch((e) => setErr(String(e.message || e)));
+    (async () => {
+      // This PulseVM build has no getAbi RPC, so fall back to Hyperion's
+      // get_abi_snapshot (captures setabi from SHiP).
+      try {
+        const r = await getAbi(account);
+        if (r?.abi || r?.tables) { setAbi(r?.abi || r); return; }
+      } catch {}
+      const h = await getAbiSnapshot(account);
+      if (h) setAbi(h);
+      else setErr("ABI unavailable — the node has no getAbi method; Hyperion hasn't indexed this contract's ABI yet.");
+    })();
   }, [account]);
 
   if (err) return <div className="glass-card text-white/50 text-sm">No ABI / not a contract: {err}</div>;

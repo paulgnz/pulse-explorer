@@ -56,3 +56,18 @@ export function getKeyAccounts(publicKey: string) {
 export function getTokens(account: string) {
   return hget(`/v2/state/get_tokens?account=${account}`);
 }
+export function getTransfers(params: Record<string, string | number>) {
+  const qs = new URLSearchParams(params as any).toString();
+  return hget(`/v2/history/get_transfers?${qs}`);
+}
+// The node exposes no getAbi RPC; Hyperion captures setabi from SHiP. Returns the
+// ABI (tables/actions/structs) or null when unavailable.
+export async function getAbiSnapshot(contract: string): Promise<any | null> {
+  if (!HYPERION) return null;
+  try {
+    const r = await hget<any>(`/v2/history/get_abi_snapshot?contract=${contract}&fetch=true`);
+    return r?.abi || null;
+  } catch {
+    return null;
+  }
+}
